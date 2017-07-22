@@ -1,0 +1,45 @@
+ [
+  {
+  "id": 0,
+  "name": "comida",
+  "price": 0.99,
+  "description": "this is the description",
+  "deckImage": "https://images-assets.nasa.gov/image/PIA08653/PIA08653~small.jpg",
+  "deckBgImage": "this is a UIImage",
+  "bought": false,
+  "cards": [
+              {
+                "name": "card name 1"
+              },
+              {
+                "name": "card name 2"
+              },
+              {
+                "name": "card name 3"
+              }
+          ]
+  },
+  
+  {
+  "id": 1,
+  "name": "comida",
+  "price": 0.99,
+  "description": "this is the description",
+  "deckImage": "https://images-assets.nasa.gov/image/PIA08653/PIA08653~small.jpg",
+  "deckBgImage": "this is a UIImage",
+  "bought": false,
+  "cards": [
+            {
+            "name": "card name 1"
+            },
+            {
+            "name": "card name 2"
+            },
+            {
+            "name": "card name 3"
+            }
+            ]
+  }
+  
+  
+  ]
