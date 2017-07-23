@@ -90,6 +90,11 @@ enum Outcome {
   case none
 }
 
+enum FileType {
+  case json
+  case image
+}
+
 
 struct Deck {
   var name = String()

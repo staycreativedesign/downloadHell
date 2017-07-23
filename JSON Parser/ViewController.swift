@@ -3,18 +3,24 @@
 //  JSON Parser
 //
 //  Created by Gustavo Pares on 7/19/17.
-//  Copyright © 2017 Gustavo Pares. All rights reserved.
+//  Copyright Â© 2017 Gustavo Pares. All rights reserved.
 //
 
 import UIKit
 
 class ViewController: UIViewController {
   
-//  var boughtDecks = [Deck]()
+  var boughtDecks = [Deck]()
+  var totalCards = [String]()
+  
   var paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+  
+  @IBOutlet weak var testImage: UIImageView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
+    
     checkForDirectoryOrFile(name: "decks", type: "dir")
     checkForDirectoryOrFile(name: "files.json", type: "file")
     
@@ -34,76 +40,68 @@ class ViewController: UIViewController {
       for obj in array! {
         guard let deck = obj                            as? [String: Any] else { return print("no deck object") }
         guard let deckName = deck["name"]               as? String        else { return print("no deck name") }
-//        guard let deckDescription = deck["description"] as? String        else { return print("no deck description") }
-        guard let deckImage = deck["deckImage"]         as? String        else { return }
-        guard let deckBgImage = deck["deckBgImage"]     as? String        else { return }
-//        guard let cards = deck["cards"]!                as? [[String: String]]    else { return }
+        guard let deckDescription = deck["description"] as? String        else { return print("no deck description") }
+        guard let deckImage = deck["deckImage"]         as? String        else { return print("no deck image") }
+        guard let deckBgImage = deck["deckBgImage"]     as? String        else { return print("no deck image bg")}
+        
+        guard let cards = deck["cards"]!                as? [[String: String]]  else { return  print("error in cards")}
+        
+        for card in cards {
+          let currentCard = card["name"]
+          totalCards.append(currentCard!)
+          
+        }
+        
         
         checkForDirectoryOrFile(name: "decks/\(deckName)", type: "dir")
-        downloadFile(location: deckImage, saveAt: deckName, fileName: "deckImage.jpg")
-        downloadFile(location: deckBgImage, saveAt: deckName, fileName: "descriptionBg.jpg")
         
+        let deckImageUrl =    downloadFile(location: deckImage, saveAt: deckName, fileName: "deckImage.jpg")
+        let deckBgImageUrl =  downloadFile(location: deckBgImage, saveAt: deckName, fileName: "descriptionBg.jpg")
+        
+        print(deckImageUrl)
+        guard let deckBgImagePath = UIImage(data: deckBgImageUrl as Data) else { return print("printing deckBgImagePath return statement") }
+        guard let deckImagePath =   UIImage(data: deckImageUrl as Data)   else { return print("printing deckImagePath return statement") }
+        
+        let finalizedDeck = createDeck(withName: deckName, withCards: totalCards, description: deckDescription, deckImage: deckImagePath, descriptionBg: deckBgImagePath)
+        boughtDecks.append(finalizedDeck)
       }
       
     }
     catch {
-        print(error.localizedDescription)
+      print(error.localizedDescription)
     }
-    
-//        TODO
-//        guard let cards = deck["cards"]! as? [[String: String]] else { return }
-//        
-//        for card in cards {
-//          let currentCard = card["name"]
-//          print(currentCard!)
-//          totalCards.append(currentCard!)
-//          
-//        }
-//        
-//        
-//        // create deck
-////        let finalizedDeck = createDeck(withName: deckName, withCards: totalCards, description: deckDescription, deckImage: deckImage, descriptionBg: deckBgImage)
-//        
-//       
-//        
-//      
-//      
-//        // add deck to decks array
-////        boughtDecks.append(finalizedDeck)
-//      }
-//    } catch {
-//      print(error)
-//    }
   }
   
   
-
   
   
   
-  func downloadFile(location: String, saveAt: String, fileName: String) {
+  
+  func downloadFile(location: String, saveAt: String, fileName: String) -> NSData {
     var paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
     let dir = paths[0]
-    
+    let toSaveAt = dir + "/decks/" + saveAt
     let loc = URL(string: location)
-
+    var imageURL = NSData()
     
-    let saveAt = dir + "/" + saveAt + "/" + fileName
+    let filePath = URL(fileURLWithPath: toSaveAt).appendingPathComponent(fileName).path
     
     
     let task = URLSession.shared.dataTask(with: loc!) { (data, response, error) in
-      print("started downloading and saving at \(saveAt)")
       if ( error != nil) {
-        print("//////////////////////////////////////// error")
         print(error!.localizedDescription)
       }
         
       else {
-        print("finished downloading \(fileName)")
-        FileManager.default.createFile(atPath: saveAt, contents: data, attributes: nil)
+        FileManager.default.createFile(atPath: filePath, contents: data, attributes: nil)
+        
+        imageURL = NSData(contentsOfFile: filePath)!
+        
       }
     }
     task.resume()
+    print(imageURL)
+    return imageURL
   }
   
   func createDirectory(withName name: String) {
@@ -114,14 +112,12 @@ class ViewController: UIViewController {
     
     do {
       try fm.createDirectory(at: deckPath, withIntermediateDirectories: true, attributes: nil)
-      print("created")
     }
     catch {
-      print("//////////////////////////////////////// error")
       print(error.localizedDescription)
     }
   }
-  
+
   
   
   
@@ -129,25 +125,48 @@ class ViewController: UIViewController {
     var directory: ObjCBool = ObjCBool(true)
     let newDir = paths[0] + "/" + name
     let exists: Bool = FileManager.default.fileExists(atPath: newDir, isDirectory: &directory)
-      print(newDir)
-      print("///////////////////////")
+    print(newDir)
     if exists && directory.boolValue {
-      print("directory exists")
     }
     else if exists {
-      print("file exists")
     }
-
+      
     else {
-      print("file or directory does not exist")
       if type == "dir" {
         createDirectory(withName: name)
-        print("\(name) directory created")
       }
       else {
-        downloadFile(location: "https://api.myjson.com/bins/9k38b.json", saveAt: "", fileName: "files.json")
+        downloadFileJson(location: "https://api.myjson.com/bins/9k38b.json", fileName: "files.json")
       }
     }
   }
-}
+  
+  
+  func downloadFileJson(location: String, fileName: String) {
+    var paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+    let dir = paths[0]
+    let toSaveAt = dir + "/"
+    let loc = URL(string: location)
+    let filePath = URL(fileURLWithPath: toSaveAt).appendingPathComponent(fileName).path
+    
+    
+    let task = URLSession.shared.dataTask(with: loc!) { (data, response, error) in
+      if ( error != nil) {
+        print(error!.localizedDescription)
+      }
+        
+      else {
+        FileManager.default.createFile(atPath: filePath, contents: data, attributes: nil)
+        
+      }
+    }
+    task.resume()
+  }
 
+  
+  
+  
+  
+  
+  
+}
