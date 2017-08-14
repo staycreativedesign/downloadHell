@@ -36,7 +36,7 @@ class ViewController: UIViewController {
         guard let deckName = deck["name"]               as? String        else { return print("no deck name") }
         //        guard let deckDescription = deck["description"] as? String        else { return print("no deck description") }
         guard let deckImage = deck["deckImage"]         as? String        else { return }
-//        guard let deckBgImage = deck["deckBgImage"]     as? String        else { return }
+        //        guard let deckBgImage = deck["deckBgImage"]     as? String        else { return }
         //        guard let cards = deck["cards"]!                as? [[String: String]]    else { return }
         
         checkForDirectoryOrFile(name: "decks/\(deckName)", type: "dir")
